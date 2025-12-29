@@ -42,8 +42,9 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password)
+    if (!email || !password){ 
       return res.status(400).json({ message: "All fields required" });
+    }
 
     const user = await User.findOne({ email });
     if (!user)
@@ -63,15 +64,17 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({
-      message: "Login successful",
+    // ✅ Explicit 200 status
+    return res.status(200).json({
+      message: "Login successfully",
       token,
     });
   } catch (err) {
     console.error("LOGIN ERROR 👉", err);
-    res.status(500).json({
+    return res.status(500).json({
       message: err.message || "Server error",
     });
   }
 };
+
 
