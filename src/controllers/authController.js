@@ -113,7 +113,8 @@ export const sendEmailLink = async (req, res) => {
     );
 
     // ✅ EMAIL MUST HIT BACKEND
-    const loginLink = `http://localhost:5000/api/verify-email?token=${token}`;
+    // const loginLink = `http://localhost:5000/api/verify-email?token=${token}`;
+    const loginLink = `https://archive-liferoom-3.onrender.com/api/verify-email?token=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
