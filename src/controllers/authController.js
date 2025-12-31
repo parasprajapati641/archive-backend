@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import nodemailer from "nodemailer"; 
 
 // SIGN UP
 export const signup = async (req, res) => {
@@ -93,6 +93,9 @@ export const login = async (req, res) => {
   }
 };
 
+/**
+ * SEND EMAIL LOGIN LINK
+ */
 export const sendEmailLink = async (req, res) => {
   try {
     const { email } = req.body;
@@ -113,8 +116,8 @@ export const sendEmailLink = async (req, res) => {
     );
 
     // ✅ EMAIL MUST HIT BACKEND
-    // const loginLink = `http://localhost:5000/api/verify-email?token=${token}`;
-    const loginLink = `https://archive-liferoom-3.onrender.com/api/verify-email?token=${token}`;
+    // const loginLink = `${process.env.BACKEND_URL}/api/verify-email?token=${token}`;
+    const loginLink = `https://archive-backend-nu.vercel.app/api/verify-email?token=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -187,6 +190,8 @@ export const verifyEmailLink = async (req, res) => {
     );
   }
 };
+
+ 
 
 
 /**
