@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 
 // SIGN UP
 export const signup = async (req, res) => {
@@ -20,7 +21,7 @@ export const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       email,
       password: hashedPassword,
     });
@@ -28,6 +29,10 @@ export const signup = async (req, res) => {
     res.status(200).json({
       message: "Signup successful",
        status: 200,
+      user: {
+        id: user._id,
+        email: user.email,
+      },
     });
   } catch (err) {
     console.error("SIGNUP ERROR 👉", err); // 🔥 REAL ERROR
@@ -37,19 +42,25 @@ export const signup = async (req, res) => {
   }
 };
 
-
 // LOGIN
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password){ 
+    if (!email || !password) {
       return res.status(400).json({ message: "All fields required" });
     }
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    // Check if user has a password (Google OAuth users might not have one)
+    if (!user.password) {
+      return res.status(400).json({
+        message:
+          "This account was created with Google. Please use Google login.",
+      });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
@@ -59,17 +70,20 @@ export const login = async (req, res) => {
       throw new Error("JWT_SECRET missing");
     }
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     // ✅ Explicit 200 status
     return res.status(200).json({
       message: "Login successfully",
-      status: 200,
       token,
+      status: 200,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
     });
   } catch (err) {
     console.error("LOGIN ERROR 👉", err);
@@ -91,13 +105,15 @@ export const sendEmailLink = async (req, res) => {
       user = await User.create({ email });
     }
 
+    // 🔐 short lived token
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "10m" }
     );
 
-    const loginLink = `${process.env.FRONTEND_URL}/email-login?token=${token}`;
+    // ✅ EMAIL MUST HIT BACKEND
+    const loginLink = `http://localhost:5000/api/verify-email?token=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -121,6 +137,7 @@ export const sendEmailLink = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login link sent to email",
+      status: 200,
     });
   } catch (error) {
     console.error("EMAIL LINK ERROR:", error);
@@ -128,45 +145,76 @@ export const sendEmailLink = async (req, res) => {
   }
 };
 
+
 /**
  * VERIFY EMAIL LOGIN TOKEN
  */
 export const verifyEmailLink = async (req, res) => {
   try {
     const { token } = req.query;
-
     if (!token)
-      return res.status(400).json({ message: "Token missing" });
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/email-login?error=token_missing`
+      );
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.userId);
     if (!user)
-      return res.status(404).json({ message: "User not found" });
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/email-login?error=user_not_found`
+      );
 
     user.isEmailVerified = true;
     await user.save();
 
-    // create auth token (normal login token)
+    // 🔐 long lived auth token
     const authToken = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({
-      success: true,
-      token: authToken,
-      user: {
-        id: user._id,
-        email: user.email,
-      },
-    });
+    // ✅ FRONTEND REDIRECT
+    res.redirect(
+      `${process.env.FRONTEND_URL}/email-login?token=${authToken}`
+    );
   } catch (error) {
     console.error("VERIFY EMAIL ERROR:", error);
-    res.status(401).json({ message: "Invalid or expired link" });
+    res.redirect(
+      `${process.env.FRONTEND_URL}/email-login?error=invalid_or_expired`
+    );
   }
 };
 
 
+/**
+ * GOOGLE OAUTH CALLBACK
+ * This handles the callback after Google authentication
+ */
+export const googleCallback = async (req, res) => {
+  try {
+    const user = req.user; // User from passport
 
+    if (!user) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=auth_failed`
+      );
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Redirect to frontend with token
+    res.redirect(
+      `${
+        process.env.FRONTEND_URL
+      }/auth/callback?token=${token}&email=${encodeURIComponent(user.email)}`
+    );
+  } catch (error) {
+    console.error("GOOGLE CALLBACK ERROR:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+  }
+};
