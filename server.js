@@ -1,12 +1,19 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+console.log("ENV CHECK:", {
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  FRONTEND_URL: process.env.FRONTEND_URL,
+});
+
+
 import cors from "cors";
 import session from "express-session";
 import passport from "./src/config/passport.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import connectDB from "./db.js";
 
-dotenv.config();
 const app = express();
 
 // Middleware

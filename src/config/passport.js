@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
@@ -5,12 +8,17 @@ import jwt from "jsonwebtoken";
 
 // Configure Google OAuth Strategy (only if credentials are provided)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+  console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
+
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback",
+        callbackURL:
+          process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback",
+        prompt: process.env.PROMPT || "select_account",
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
@@ -52,7 +60,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   );
   console.log("✅ Google OAuth configured");
 } else {
-  console.log("⚠️  Google OAuth not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET not found in .env");
+  console.log(
+    "⚠️  Google OAuth not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET not found in .env"
+  );
 }
 
 // Serialize user for session
@@ -71,4 +81,3 @@ passport.deserializeUser(async (id, done) => {
 });
 
 export default passport;
-

@@ -116,8 +116,8 @@ export const sendEmailLink = async (req, res) => {
     );
 
     // ✅ EMAIL MUST HIT BACKEND
-    // const loginLink = `${process.env.BACKEND_URL}/api/verify-email?token=${token}`;
-    const loginLink = `https://archive-backend-nu.vercel.app/api/verify-email?token=${token}`;
+    const loginLink = `${process.env.BACKEND_URL}/api/verify-email?token=${token}`;
+    // const loginLink = `https://archive-backend-nu.vercel.app/api/verify-email?token=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
