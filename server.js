@@ -11,6 +11,7 @@ import cors from "cors";
 import session from "express-session";
 import passport from "./src/config/passport.js";
 import authRoutes from "./src/routes/authRoutes.js";
+import liferoomRoutes from "./src/routes/liferoom.js";
 import connectDB from "./db.js";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use(passport.session());
 
 // Routes
 app.use("/api", authRoutes);
+app.use("/api/liferoom", liferoomRoutes);
 
 app.use((req, res, next) => {
   console.log("HIT =>", req.method, req.url);
