@@ -6,6 +6,8 @@ import {
   sendEmailLink,
   verifyEmailLink,
   googleCallback,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -17,6 +19,9 @@ router.post("/login", login);
 // Email magic link routes
 router.post("/email-link", sendEmailLink);
 router.get("/verify-email", verifyEmailLink);
+
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 // Google OAuth routes (only if configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
