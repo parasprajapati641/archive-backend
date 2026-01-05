@@ -14,34 +14,16 @@ const allowedOrigins = [
   "http://localhost:8080",
   "https://theliferoomarchive.com",
   "https://www.theliferoomarchive.com",
+  "https://your-project-name.vercel.app", // temporary live preview
 ];
 
-// 🔹 CORS middleware (live + local + Postman)
+// CORS middleware (live + local + Postman)
 app.use(cors({
-  origin: function(origin, callback) {
-    // null origin (Postman / server-to-server) allow
-    if (!origin) return callback(null, true);
-
-    // allowed origins
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.log("Blocked by CORS:", origin); // debug
-    return callback(new Error("Not allowed by CORS"));
-  },
+  origin: true, // allow all origins temporarily
   credentials: true,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
-// 🔹 Handle all OPTIONS requests for preflight
-app.options("*", cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
-}));
+app.options("*", cors()); // preflight
 
 // JSON parser
 app.use(express.json());
