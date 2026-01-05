@@ -1,76 +1,51 @@
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
-console.log("ENV CHECK:", {
-  EMAIL_USER: process.env.EMAIL ? "LOADED" : "MISSING",
-  EMAIL_PASS: process.env.EMAIL_PASS ? "LOADED" : "MISSING",
-});
-
-
 import cors from "cors";
-import session from "express-session";
 import passport from "./src/config/passport.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import liferoomRoutes from "./src/routes/liferoom.js";
 import connectDB from "./db.js";
 
+dotenv.config();
+
 const app = express();
 
-// Middleware
+/* 🔥 CONNECT DB (once per cold start) */
+connectDB();
+
+/* 🔥 CORS (STATIC ORIGIN ONLY) */
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:8080",
+  origin: "https://theliferoomarchive.com",
   credentials: true,
-   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
 app.options("*", cors());
+
 app.use(express.json());
 
-// Session configuration (for passport)
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
-
-// Initialize passport
+/* 🔥 Passport (NO session on Vercel) */
 app.use(passport.initialize());
-app.use(passport.session());
 
-// Routes
+/* Routes */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
+/* Debug */
 app.use((req, res, next) => {
   console.log("HIT =>", req.method, req.url);
   next();
 });
-// 404 handler
+
+/* 404 */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: "API route not found",
-    path: req.originalUrl
+    path: req.originalUrl,
   });
 });
 
-// Start server after DB connects
-const startServer = async () => {
-  try {
-    await connectDB(); // wait until DB connected
-    app.listen(process.env.PORT, () =>
-      console.log(`🚀 Server running on port ${process.env.PORT}`)
-    );
-  } catch (error) {
-    console.error("Server failed to start:", error);
-  }
-};
-
-startServer();
+/* ❌ DO NOT app.listen() */
+export default app;
