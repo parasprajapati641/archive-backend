@@ -46,9 +46,9 @@ app.use((req, res, next) => {
     "Content-Type, Authorization"
   );
 
-  // 🔥 VERY IMPORTANT
+   // 🔥 THIS IS THE FIX
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    return res.status(200).send("OK");
   }
 
   next();
