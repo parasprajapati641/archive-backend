@@ -13,16 +13,18 @@ const app = express();
 /* 🔥 DB connect (NO await, NO listen) */
 connectDB();
 
-/* 🔥 CORS (NO credentials on Vercel) */
+/* ✅ CORS — MUST BE FIRST */
 app.use(cors({
   origin: "https://theliferoomarchive.com",
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
+/* ✅ PRE-FLIGHT FIX (VERY IMPORTANT) */
 app.options("*", cors());
 
 app.use(express.json());
-
 /* 🔥 Passport (NO session) */
 app.use(passport.initialize());
 
