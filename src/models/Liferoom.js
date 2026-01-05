@@ -7,7 +7,17 @@ const liferoomSchema = new mongoose.Schema(
     city: { type: String, index: true },
     country: { type: String, index: true },
     date: { type: String },
-    isPublic: { type: Boolean, default: false },
+    isPublic: { type: Boolean, default: false }, 
+     
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+     deleteRequested: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

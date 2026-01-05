@@ -8,7 +8,12 @@ import {
   googleCallback,
   forgotPassword,
   resetPassword,
+  requestEmailChange,
+  verifyEmailChange,
 } from "../controllers/authController.js";
+import Liferoom from "../models/Liferoom.js";
+import User from "../models/User.js";
+import { protect } from "../config/auth.js";
 
 const router = express.Router();
 
@@ -22,6 +27,10 @@ router.get("/verify-email", verifyEmailLink);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
+// CHANGE EMAIL
+router.post("/change-email/request", protect, requestEmailChange);
+router.get("/change-email/verify", verifyEmailChange);
 
 // Google OAuth routes (only if configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -52,5 +61,33 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     });
   });
 }
+
+/* ✅ DELETE ACCOUNT ROUTE — ALWAYS AVAILABLE */
+router.delete("/delete-account", protect, async (req, res) => {
+  console.log("DELETE /api/delete-account HIT");
+  console.log("req.user:", req.user);
+
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(400).json({ message: "User ID missing" });
+  }
+
+  try {
+    await Liferoom.deleteMany({ userId });
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Delete failed",
+    });
+  }
+})
+
 
 export default router;

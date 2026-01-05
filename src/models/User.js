@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
 
+  //change email
+  pendingEmail: { type: String },
+emailChangeToken: { type: String },
+emailChangeExpires: { type: Date }
+
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);
