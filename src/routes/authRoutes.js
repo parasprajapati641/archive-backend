@@ -63,9 +63,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 /* ✅ DELETE ACCOUNT ROUTE — ALWAYS AVAILABLE */
-router.delete("/delete-account", protect, async (req, res) => {
-  console.log("DELETE /api/delete-account HIT");
-  console.log("req.user:", req.user);
+router.delete("/delete-account", protect, async (req, res) => { 
 
   const userId = req.user?.id;
   if (!userId) {

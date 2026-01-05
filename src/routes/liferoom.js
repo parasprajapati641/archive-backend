@@ -103,13 +103,8 @@ router.put("/:id", protect, async (req, res) => {
 
 // DELETE /api/liferoom/:id/request-delete
 router.delete("/:id", async (req, res) => {
-  try {
-    console.log("DELETE API HIT");
-    console.log("ID RECEIVED:", req.params.id);
-    
-    const liferoom = await Liferoom.findByIdAndDelete(req.params.id);
-    
-    console.log("DELETED DATA:", liferoom);
+  try { 
+    const liferoom = await Liferoom.findByIdAndDelete(req.params.id); 
     
     if (!liferoom) {
       return res.status(404).json({ message: "Not found" });

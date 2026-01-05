@@ -61,10 +61,6 @@ app.use((req, res) => {
   });
 });
 
-console.log("AUTH ROUTES LOADED", authRoutes);
-
-
-
 // Start server after DB connects
 const startServer = async () => {
   try {

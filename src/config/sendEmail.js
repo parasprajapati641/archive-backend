@@ -14,7 +14,7 @@ const sendEmail = async ({ to, subject, html }) => {
   await transporter.verify(); // 👈 THIS WILL THROW REAL ERROR
 
   await transporter.sendMail({
-    from: `"Archive App" <${process.env.EMAIL}>`,
+    from: `"The Archive Liferoom" <${process.env.EMAIL}>`,
     to,
     subject,
     html,

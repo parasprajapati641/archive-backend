@@ -9,9 +9,7 @@ import { protect } from "../config/auth.js";
 
 // SIGN UP
 export const signup = async (req, res) => {
-  try {
-    console.log("REQ BODY:", req.body); // 🔥 DEBUG
-
+  try { 
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -129,7 +127,7 @@ export const sendEmailLink = async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Auth App" <${process.env.EMAIL}>`,
+      from: `"The Archive Liferoom" <${process.env.EMAIL}>`,
       to: email,
       subject: "Your Login Link",
       html: `
@@ -146,8 +144,7 @@ export const sendEmailLink = async (req, res) => {
       email:email,
       userId: user._id, 
     });
-
-    console.log("res", res);
+ 
     
   } catch (error) {
     console.error("EMAIL LINK ERROR:", error);
@@ -225,8 +222,7 @@ export const googleCallback = async (req, res) => {
 
 // forgot-password
 export const forgotPassword = async (req, res) => {
-  try {
-    console.log("📩 Forgot password API hit");
+  try { 
 
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -352,14 +348,7 @@ export const requestEmailChange = async (req, res) => {
         <a href="${verifyLink}">${verifyLink}</a>
         <p>This link expires in 1 hour.</p>
       `,
-    });
-
-    console.log("===== EMAIL CHANGE DEBUG =====");
-    console.log("USER ID:", userId);
-    console.log("PLAIN TOKEN:", plainToken);
-    console.log("HASHED TOKEN:", hashedToken);
-    console.log("EXPIRES:", user.emailChangeExpires);
-    console.log("==============================");
+    }); 
 
     return res.status(200).json({
       success: true,
@@ -375,20 +364,12 @@ export const verifyEmailChange = async (req, res) => {
   try {
     const { token } = req.query;
 
-    console.log("===== VERIFY DEBUG =====");
-    console.log("PLAIN TOKEN FROM URL:", token);
-
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-    console.log("HASHED TOKEN:", hashedToken);
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex"); 
 
     const user = await User.findOne({
       emailChangeToken: hashedToken,
       emailChangeExpires: { $gt: Date.now() },
     });
-
-    console.log("USER FOUND:", !!user);
-    console.log("========================");
 
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired link" });

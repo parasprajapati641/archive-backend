@@ -13,12 +13,10 @@ export const protect = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = { id:decoded.id || decoded.userId || decoded._id }; // req.user.id  
-    console.log("req.user attached:", req.user);
+    req.user = { id:decoded.id || decoded.userId || decoded._id }; // req.user.id   
 
     next();
-  } catch (err) {
-    console.log("Token verify error:", err.message);
+  } catch (err) { 
     return res.status(401).json({ message: "Invalid token" });
   }
 };
