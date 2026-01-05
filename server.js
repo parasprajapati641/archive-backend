@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./db.js";
 import authRoutes from "./src/routes/authRoutes.js";
@@ -9,29 +8,15 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-// app.use(
-//   cors({
-//     origin:
-//       process.env.FRONTEND_URL ||
-//       "https://www.theliferoomarchive.com" ||
-//       "http://localhost:8080",
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
-// app.options("*", cors());
-
+/* CORS – FINAL */
 app.use((req, res, next) => {
   const allowedOrigins = [
-    "http://localhost:8080",
     "https://theliferoomarchive.com",
     "https://www.theliferoomarchive.com",
+    "http://localhost:8080",
   ];
 
   const origin = req.headers.origin;
-
   if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -46,46 +31,19 @@ app.use((req, res, next) => {
     "Content-Type, Authorization"
   );
 
-   // 🔥 THIS IS THE FIX
   if (req.method === "OPTIONS") {
-    return res.status(200).send("OK");
+    return res.status(200).end();
   }
 
   next();
 });
+
 app.use(express.json());
 
-// Session configuration (for passport)
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
-
-// ROUTES
+/* Routes */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
-// TEST ROUTE
-app.get("/", (req, res) => res.send("Backend is running 🚀"));
+app.get("/", (req, res) => res.send("Backend running 🚀"));
 
-// START SERVER
-const startServer = async () => {
-  try {
-    await connectDB();
-    app.listen(process.env.PORT || 5000, () =>
-      console.log("🚀 Server started")
-    );
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-startServer();
+export default app;
