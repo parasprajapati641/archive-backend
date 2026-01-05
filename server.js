@@ -1,50 +1,68 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import passport from "./src/config/passport.js";
+import connectDB from "./db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import liferoomRoutes from "./src/routes/liferoom.js";
-import connectDB from "./db.js";
 
 dotenv.config();
 
 const app = express();
 
-/* 🔥 DB connect (NO await, NO listen) */
-connectDB();
+/* =========================
+   🔥 ABSOLUTE FINAL CORS
+========================= */
+const allowedOrigins = [
+  "https://theliferoomarchive.com",
+];
 
-/* ✅ CORS — MUST BE FIRST */
-app.use(cors({
-  origin: "https://theliferoomarchive.com",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
 
-/* ✅ PRE-FLIGHT FIX (VERY IMPORTANT) */
-app.options("*", cors());
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // 🔥 VERY IMPORTANT
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+/* ========================= */
 
 app.use(express.json());
-/* 🔥 Passport (NO session) */
-app.use(passport.initialize());
 
-/* Routes */
+/* ROUTES */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
-/* Health check */
+/* TEST ROUTE */
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-/* 404 */
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "API route not found",
-    path: req.originalUrl,
-  });
-});
+/* START SERVER */
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(process.env.PORT || 5000, () => {
+      console.log("🚀 Server started");
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-/* ❌ NO app.listen() */
-export default app;
+startServer();
