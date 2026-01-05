@@ -13,32 +13,28 @@ const app = express();
    🔥 ABSOLUTE FINAL CORS
 ========================= */
 const allowedOrigins = [
-  "https://theliferoomarchive.com",
+  "https://theliferoomarchive.com", // live domain
+  "https://www.theliferoomarchive.com", // with www if applicable
+  "http://localhost:8080",            // local frontend
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
+app.use(cors({
+  origin: function(origin, callback) {
+    // origin null allow karva (Postman / server-to-server)
+    if (!origin) return callback(null, true);
 
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
-  // 🔥 VERY IMPORTANT
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
 
 /* ========================= */
 
