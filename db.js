@@ -1,28 +1,31 @@
 import mongoose from "mongoose";
 
+let cached = global.mongoose; // cache for serverless
+if (!cached) cached = global.mongoose = { conn: null, promise: null };
+
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("✅ MongoDB Connected");
-    mongoose.connection.on("connecting", () => {
-      console.log("🔄 MongoDB connecting...");
-    });
-
-    mongoose.connection.on("connected", () => {
-      console.log("✅ MongoDB connected");
-    });
-
-    mongoose.connection.on("error", (err) => {
-      console.error("❌ MongoDB error:", err);
-    });
-
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 30000,
-    });
-  } catch (error) {
-    console.error("MongoDB connection failed:", error);
-    process.exit(1);
+  if (cached.conn) {
+    return cached.conn;
   }
+
+  if (!cached.promise) {
+    const opts = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    };
+
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is not defined in environment variables");
+    }
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+      console.log("MongoDB connected ✅");
+      return mongoose;
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 };
 
 export default connectDB;

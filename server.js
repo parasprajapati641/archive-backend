@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 
-/* ✅ CORS setup — Vercel compatible */
+/* ✅ CORS setup */
 const allowedOrigins = [
   "http://localhost:8080",
   "https://theliferoomarchive.com",
@@ -19,14 +19,9 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow server-to-server requests like Postman
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      if (!origin) return callback(null, true); // Postman or server requests
+      if (allowedOrigins.includes(origin)) callback(null, true);
+      else callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -37,15 +32,17 @@ app.use(
 /* ✅ JSON parser */
 app.use(express.json());
 
+/* ✅ Connect to DB once at server start */
+await connectDB(); // serverless safe, caches connection
+
 /* ✅ Routes */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
 /* ✅ Test route */
-app.get("/", async (req, res) => {
-  await connectDB(); // ensure DB connected
+app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
-/* ❌ DO NOT listen() on Vercel */
+/* ❌ Do NOT listen() on Vercel */
 export default app;
