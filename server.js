@@ -16,10 +16,9 @@ connectDB();
 /* 🔥 CORS (STATIC ORIGIN ONLY) */
 app.use(cors({
   origin: "https://theliferoomarchive.com",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 }));
+
 
 app.options("*", cors());
 
