@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./db.js";
+import session from "express-session";
 import authRoutes from "./src/routes/authRoutes.js";
 import liferoomRoutes from "./src/routes/liferoom.js";
 
@@ -21,6 +22,8 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+console.log("process.env.FRONTEND_URL",process.env.FRONTEND_URL);
+
 app.options("*", cors());
 app.use(express.json());
 
