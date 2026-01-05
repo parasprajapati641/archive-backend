@@ -9,52 +9,43 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+/* ✅ CORS setup — Vercel compatible */
+const allowedOrigins = [
+  "http://localhost:8080",
+  "https://theliferoomarchive.com",
+  "https://www.theliferoomarchive.com",
+];
+
 app.use(
   cors({
-    origin:
-      process.env.FRONTEND_URL ||
-      "https://www.theliferoomarchive.com" ||
-      "http://localhost:8080",
+    origin: function (origin, callback) {
+      // allow server-to-server requests like Postman
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.options("*", cors());
+
+/* ✅ JSON parser */
 app.use(express.json());
 
-// Session configuration (for passport)
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
-
-// ROUTES
+/* ✅ Routes */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
-// TEST ROUTE
-app.get("/", (req, res) => res.send("Backend is running 🚀"));
+/* ✅ Test route */
+app.get("/", async (req, res) => {
+  await connectDB(); // ensure DB connected
+  res.send("Backend running 🚀");
+});
 
-// START SERVER
-const startServer = async () => {
-  try {
-    await connectDB();
-    app.listen(process.env.PORT || 5000, () =>
-      console.log("🚀 Server started")
-    );
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-startServer();
+/* ❌ DO NOT listen() on Vercel */
+export default app;
