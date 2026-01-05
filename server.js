@@ -10,31 +10,29 @@ dotenv.config();
 
 const app = express();
 
-/* 🔥 CONNECT DB (once per cold start) */
+/* 🔥 DB connect (NO await, NO listen) */
 connectDB();
 
-/* 🔥 CORS (STATIC ORIGIN ONLY) */
+/* 🔥 CORS (NO credentials on Vercel) */
 app.use(cors({
   origin: "https://theliferoomarchive.com",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
-
 
 app.options("*", cors());
 
 app.use(express.json());
 
-/* 🔥 Passport (NO session on Vercel) */
+/* 🔥 Passport (NO session) */
 app.use(passport.initialize());
 
 /* Routes */
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
-/* Debug */
-app.use((req, res, next) => {
-  console.log("HIT =>", req.method, req.url);
-  next();
+/* Health check */
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
 });
 
 /* 404 */
@@ -46,5 +44,5 @@ app.use((req, res) => {
   });
 });
 
-/* ❌ DO NOT app.listen() */
+/* ❌ NO app.listen() */
 export default app;
