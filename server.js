@@ -9,40 +9,53 @@ dotenv.config();
 
 const app = express();
 
-/* ✅ CORS setup */
-const allowedOrigins = [
-  "http://localhost:8080",
-  "https://theliferoomarchive.com",
-  "https://www.theliferoomarchive.com",
-];
+// Middleware
+// app.use(
+//   cors({
+//     origin:
+//       process.env.FRONTEND_URL ||
+//       "https://www.theliferoomarchive.com" ||
+//       "http://localhost:8080",
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
+// app.options("*", cors());
+app.use(cors({ origin: "*" }));
+app.use(express.json());
 
+// Session configuration (for passport)
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Postman or server requests
-      if (allowedOrigins.includes(origin)) callback(null, true);
-      else callback(new Error("Not allowed by CORS"));
+  session({
+    secret: process.env.JWT_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-/* ✅ JSON parser */
-app.use(express.json());
-
-/* ✅ Connect to DB once at server start */
-await connectDB(); // serverless safe, caches connection
-
-/* ✅ Routes */
+// ROUTES
 app.use("/api", authRoutes);
 app.use("/api/liferoom", liferoomRoutes);
 
-/* ✅ Test route */
-app.get("/", (req, res) => {
-  res.send("Backend running 🚀");
-});
+// TEST ROUTE
+app.get("/", (req, res) => res.send("Backend is running 🚀"));
 
-/* ❌ Do NOT listen() on Vercel */
-export default app;
+// START SERVER
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(process.env.PORT || 5000, () =>
+      console.log("🚀 Server started")
+    );
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+startServer();
